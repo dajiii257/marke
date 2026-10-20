@@ -1,0 +1,2400 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="color-scheme" content="dark" />
+    <title>Маркет</title>
+    <style>
+      #app {
+        visibility: hidden;
+        opacity: 0;
+      }
+      .page-loader {
+        visibility: visible !important;
+      }
+    </style>
+
+    <link rel="preconnect" href="https://telegram.org" />
+    <link rel="preconnect" href="https://nft.fragment.com" crossorigin="" />
+
+    <link rel="dns-prefetch" href="https://telegram.org" />
+    <link rel="dns-prefetch" href="https://nft.fragment.com" />
+
+    <link rel="preload" href="styles.css?v=3" as="style" />
+    <link rel="preload" href="script.js?v=6" as="script" />
+
+    <script>
+      // Log-shim: в проде глушим console.log/info/debug (шум в devtool на Android/desktop),
+      // но пишем последние 200 записей в window.__mktLogs для post-mortem. error/warn
+      // оставляем видимыми - помогают быстро диагностировать реальные проблемы.
+      // Включить полный вывод: ?dev=1 в URL или localStorage.setItem('__DEV__','1').
+      (function () {
+        var isDev = /(?:^|[?&])dev=1(?:&|$)/.test(location.search);
+        try {
+          if (localStorage.getItem("__DEV__") === "1") isDev = true;
+        } catch (e) {}
+        window.__DEV__ = isDev;
+        if (isDev) return;
+        window.__mktLogs = [];
+        var _orig = {
+          log: console.log,
+          info: console.info,
+          debug: console.debug,
+        };
+        function _buffer(kind, args) {
+          try {
+            window.__mktLogs.push({
+              t: Date.now(),
+              kind: kind,
+              msg: Array.prototype.join.call(args, " "),
+            });
+            if (window.__mktLogs.length > 200) window.__mktLogs.shift();
+          } catch (e) {}
+        }
+        console.log = function () {
+          _buffer("log", arguments);
+        };
+        console.info = function () {
+          _buffer("info", arguments);
+        };
+        console.debug = function () {
+          _buffer("debug", arguments);
+        };
+      })();
+    </script>
+    <script src="/static/js/telegram-web-app.js"></script>
+    <parameter name="newStr">    <script src="/static/webapp-runtime.js?v=2"></script>
+    <!-- Не уничтожаем DOM при кратковременно пустом Telegram.initData: на части
+         Android WebView SDK заполняет его позже, из-за чего раньше маркет навсегда
+         превращался в Access Denied. Реальная защита остаётся на API (HMAC). -->
+    <script>
+      (function () {
+        var runtime = window.WebAppRuntime;
+        window.__telegramLaunchData = runtime ? runtime.getInitData() : "";
+      })();
+    </script>
+    <script>
+      if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+    </script>
+
+    <link
+      href="/static/npm/remixicon@3.5.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css?v=3" />
+  </head>
+
+  <body class="market-shell">
+    <div id="pageLoader" class="page-loader">
+      <div class="loader-scene">
+        <!-- Фоновый глоу -->
+        <div class="loader-bg-glow"></div>
+        <!-- Вращающееся внешнее кольцо -->
+        <svg
+          class="loader-ring-svg"
+          viewBox="0 0 120 120"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#a78bfa" />
+              <stop offset="50%" stop-color="#3b82f6" />
+              <stop offset="100%" stop-color="#a78bfa" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <circle class="loader-ring-track" cx="60" cy="60" r="52" />
+          <circle class="loader-ring-arc" cx="60" cy="60" r="52" />
+        </svg>
+        <!-- Второе кольцо (обратное) -->
+        <svg
+          class="loader-ring-svg loader-ring-reverse"
+          viewBox="0 0 120 120"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle class="loader-ring-arc2" cx="60" cy="60" r="42" />
+        </svg>
+        <!-- Частицы-искры -->
+        <div class="loader-particles">
+          <span class="lp lp1"></span>
+          <span class="lp lp2"></span>
+          <span class="lp lp3"></span>
+          <span class="lp lp4"></span>
+          <span class="lp lp5"></span>
+          <span class="lp lp6"></span>
+        </div>
+        <!-- Иконка в центре -->
+        <div class="loader-icon-wrap">
+          <svg
+            class="loader-icon-svg"
+            viewBox="0 0 100 100"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <linearGradient id="lgi1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#a78bfa" />
+                <stop offset="100%" stop-color="#3b82f6" />
+              </linearGradient>
+              <filter id="lglow">
+                <feGaussianBlur stdDeviation="3" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            <path
+              filter="url(#lglow)"
+              fill="url(#lgi1)"
+              d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z"
+            />
+            <path
+              fill="rgba(255,255,255,0.15)"
+              d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z"
+            />
+          </svg>
+        </div>
+        <!-- Текст + точки -->
+        <div class="loader-label">
+          Загружаем<span class="loader-dots-anim"
+            ><span>.</span><span>.</span><span>.</span></span
+          >
+        </div>
+      </div>
+    </div>
+    <div id="app">
+      <header class="top-header">
+        <div class="balance-card stars-balance">
+          <svg
+            class="star-icon"
+            width="18"
+            height="18"
+            viewbox="0 0 14 14"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="#f1aa05"
+          >
+            <path
+              d="M7.93486 0.654804C7.61738 -0.218273 6.38261 -0.218263 6.06513 0.654805L4.62238 4.62238L0.654803 6.06514C-0.218272 6.38262 -0.218263 7.61738 0.654805 7.93486L4.62238 9.37762L6.06513 13.3452C6.38261 14.2182 7.61738 14.2182 7.93486 13.3452L9.37761 9.37762L13.3452 7.93486C14.2183 7.61738 14.2183 6.38262 13.3452 6.06514L9.37761 4.62238L7.93486 0.654804Z"
+            ></path>
+          </svg>
+          <span class="balance-amount" id="starsBalance">0 Stars</span>
+          <button
+            class="add-balance-btn"
+            id="addStarsBtn"
+            aria-label="Пополнить Stars"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewbox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M8 3V13M3 8H13"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              ></path>
+            </svg>
+          </button>
+        </div>
+        <div class="balance-card">
+          <svg
+            class="ton-icon"
+            width="18"
+            height="18"
+            viewbox="0 0 13 14"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="currentColor"
+          >
+            <path
+              d="M10.0758 0.5H1.94269C0.460088 0.5 -0.471834 2.10705 0.248288 3.41806L5.24678 12.0877C5.58566 12.6374 6.3905 12.6374 6.72938 12.0877L11.7279 3.41806C12.4904 2.10705 11.5584 0.5 10.0758 0.5ZM5.28914 9.46564L4.18778 7.3511L1.56145 2.65683C1.39201 2.36079 1.60381 1.98018 1.98505 1.98018H5.28914V9.46564ZM10.4571 2.65683L7.83075 7.3511L6.72938 9.46564V1.98018H10.0335C10.4147 1.98018 10.6265 2.36079 10.4571 2.65683Z"
+            ></path>
+          </svg>
+          <span class="balance-amount" id="balanceAmount">0 TON</span>
+          <button
+            class="add-balance-btn"
+            id="addBalanceBtn"
+            aria-label="Пополнить TON"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewbox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M8 3V13M3 8H13"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              ></path>
+            </svg>
+          </button>
+        </div>
+      </header>
+      <div id="view-market" class="view-container">
+        <div class="banners-carousel">
+          <div class="banners-wrapper" id="bannersWrapper">
+            <div class="banner-item">
+              <img
+                src="/static/x1d8FKhp/Banner2-CGn87Qm-N-1.webp"
+                alt="Banner 1"
+                class="banner-image"
+                decoding="async"
+              />
+            </div>
+            <div class="banner-item">
+              <img
+                src="/static/1z9nSkgs/photo-2026-02-01-04-36-54.jpg"
+                alt="Banner 2"
+                class="banner-image"
+                decoding="async"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="filters-section">
+          <div class="filters-tabs">
+            <button class="filter-tab active" data-filter="all">
+              Все подарки
+            </button>
+            <button class="filter-tab" data-filter="bundles">Бандлы</button>
+          </div>
+
+          <div class="quick-search-row">
+            <div class="quick-search-wrapper">
+              <i class="ri-search-line quick-search-icon"></i>
+              <input
+                type="text"
+                class="quick-search-input"
+                id="quickSearchInput"
+                placeholder="Быстрый поиск"
+              />
+            </div>
+            <button
+              class="view-toggle-btn"
+              id="viewToggleBtn"
+              aria-label="Переключить вид"
+            >
+              <svg
+                class="view-icon view-grid"
+                width="20"
+                height="20"
+                viewbox="0 0 24 24"
+                fill="currentColor"
+              >
+                <rect x="3" y="3" width="8" height="8" rx="2"></rect>
+                <rect x="13" y="3" width="8" height="8" rx="2"></rect>
+                <rect x="3" y="13" width="8" height="8" rx="2"></rect>
+                <rect x="13" y="13" width="8" height="8" rx="2"></rect>
+              </svg>
+              <svg
+                class="view-icon view-list hidden"
+                width="20"
+                height="20"
+                viewbox="0 0 24 24"
+                fill="currentColor"
+              >
+                <rect x="3" y="4" width="18" height="4" rx="1"></rect>
+                <rect x="3" y="10" width="18" height="4" rx="1"></rect>
+                <rect x="3" y="16" width="18" height="4" rx="1"></rect>
+              </svg>
+            </button>
+            <button
+              class="filter-expand-btn"
+              id="filterExpandBtn"
+              aria-label="Фильтры"
+            >
+              <svg
+                class="filter-expand-icon"
+                width="18"
+                height="18"
+                viewbox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+
+          <div class="price-filter-panel hidden" id="priceFilterPanel">
+            <div class="price-filter-slider-row">
+              <input
+                type="range"
+                class="price-filter-slider"
+                id="priceFilterSlider"
+                min="0"
+                max="1000"
+                value="1000"
+              />
+              <div class="price-filter-info">
+                <span class="price-filter-value" id="priceFilterValue"
+                  >1000 TON</span
+                >
+                <span class="price-filter-count" id="priceFilterCount"
+                  >Все подарки</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="filters-row">
+            <button
+              class="filter-btn collection-btn"
+              data-filter-type="collection"
+            >
+              <span class="collection-btn-text">Коллекция: Все</span>
+              <svg
+                class="collection-btn-arrow"
+                width="12"
+                height="12"
+                viewbox="0 0 12 12"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M3 4.5L6 7.5L9 4.5"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                ></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="nft-cards-grid" id="nftCardsGrid"></div>
+        <div class="bundles-grid hidden" id="bundlesGrid"></div>
+      </div>
+
+      <div id="view-my-gifts" class="view-container hidden">
+        <div class="my-gifts-tabs">
+          <button class="my-gifts-tab active" data-gifts-tab="gifts">
+            Гифты
+          </button>
+          <button class="my-gifts-tab" data-gifts-tab="offers">Офферы</button>
+          <button class="my-gifts-tab" data-gifts-tab="history">История</button>
+        </div>
+
+        <div class="my-gifts-status-bar">
+          <button class="my-gifts-status-btn active" data-status="unlisted">
+            <span class="my-gifts-status-text">Гифты</span>
+            <span class="my-gifts-status-count" id="unlistedCount">0</span>
+          </button>
+          <button class="my-gifts-status-btn" data-status="listed">
+            <span class="my-gifts-status-text">Сделки</span>
+            <span class="my-gifts-status-count" id="listedCount">0</span>
+          </button>
+        </div>
+
+        <div class="my-gifts-actions">
+          <button
+            class="my-gifts-action-btn"
+            id="addGiftBtn"
+            aria-label="Добавить"
+          >
+            <i class="ri-add-line"></i>
+            <span class="my-gifts-action-label">Добавить</span>
+          </button>
+          <button
+            class="my-gifts-action-btn"
+            id="withdrawGiftBtn"
+            aria-label="Вывод"
+          >
+            <i class="ri-upload-2-line"></i>
+            <span class="my-gifts-action-label">Вывод</span>
+          </button>
+          <button
+            class="my-gifts-action-btn"
+            id="sellGiftBtn"
+            aria-label="Продать"
+          >
+            <i class="ri-shopping-cart-line"></i>
+            <span class="my-gifts-action-label">Продать</span>
+          </button>
+          <button
+            class="my-gifts-action-btn"
+            id="sendGiftBtn"
+            aria-label="Отправить"
+          >
+            <i class="ri-gift-line"></i>
+            <span class="my-gifts-action-label">Отправить</span>
+          </button>
+        </div>
+
+        <div class="my-gifts-content" id="myGiftsContent">
+          <div class="section-placeholder">
+            <div
+              class="section-placeholder-animation"
+              id="myGiftsPlaceholderAnimation"
+            ></div>
+            <h2 class="section-placeholder-title">Мои подарки</h2>
+            <p class="section-placeholder-subtitle">
+              Здесь будут ваши купленные или полученные подарки.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-cases" class="view-container hidden cases-view">
+        <!-- SVG-дефиниция звезды (скрытая) -->
+        <svg style="display: none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient
+              id="case-star-grad"
+              x1="14.658"
+              x2="1.323"
+              y1="7.999"
+              y2="7.999"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop stop-color="#FFD843"></stop>
+              <stop offset="1" stop-color="#EEB71F"></stop>
+            </linearGradient>
+            <symbol id="case-star-sym" viewBox="0 0 16 16">
+              <path
+                fill="url(#case-star-grad)"
+                d="m7.647 12.4-3 1.82a.667.667 0 0 1-1.006-.459.7.7 0 0 1 .012-.261l.467-1.82c.167-.653.62-1.2 1.233-1.493l3.274-1.56a.307.307 0 0 0 .146-.407.31.31 0 0 0-.333-.167L4.8 8.68a2.57 2.57 0 0 1-2.08-.56l-1.147-.953A.653.653 0 0 1 1.947 6l3.513-.273a.67.67 0 0 0 .56-.407l1.36-3.253a.667.667 0 0 1 1.22 0L9.96 5.32a.67.67 0 0 0 .56.4l3.533.28a.66.66 0 0 1 .38 1.153L11.74 9.44a.65.65 0 0 0-.22.653l.833 3.42a.658.658 0 0 1-.993.714L8.333 12.4a.67.67 0 0 0-.686 0"
+              ></path>
+            </symbol>
+          </defs>
+        </svg>
+
+        <!-- HEADER -->
+        <div class="cases-header">
+          <div class="cases-bg-particles">
+            <div class="case-particle p-1"></div>
+            <div class="case-particle p-2"></div>
+            <div class="case-particle p-3"></div>
+            <div class="case-particle p-4"></div>
+            <div class="case-particle p-5"></div>
+            <div class="case-particle p-6"></div>
+            <div class="case-particle p-7"></div>
+            <div class="case-particle p-8"></div>
+          </div>
+          <div class="cases-icon-ring">
+            <div class="cases-icon-container">
+              <svg
+                width="36"
+                height="36"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M20 8.099c0-.298-.083-.591-.239-.85a1.74 1.74 0 0 0-.65-.62L12.89 3.227a1.84 1.84 0 0 0-1.778 0l-6.222 3.4c-.27.15-.494.364-.65.622A1.64 1.64 0 0 0 4 8.099v6.8c0 .299.083.591.239.85.156.258.38.472.65.621l6.222 3.4a1.84 1.84 0 0 0 1.778 0l6.222-3.4a1.74 1.74 0 0 0 .65-.621c.156-.259.239-.551.239-.85z"
+                />
+                <path d="M4.267 7.249 12 11.499l7.733-4.25M12 20v-8.5" />
+              </svg>
+            </div>
+          </div>
+          <h1 class="cases-title">Кейсы</h1>
+          <p class="cases-subtitle">Открывай кейсы и выигрывай подарки</p>
+        </div>
+
+        <!-- STATS STRIP -->
+        <div class="cases-stats-strip">
+          <div class="cases-stat-item">
+            <span class="cases-stat-value">2,9M+</span>
+            <span class="cases-stat-label">открыто</span>
+          </div>
+          <div class="cases-stat-sep"></div>
+          <div class="cases-stat-item">
+            <span class="cases-stat-value">6,8M+</span>
+            <span class="cases-stat-label">игроков</span>
+          </div>
+          <div class="cases-stat-sep"></div>
+          <div class="cases-stat-item">
+            <span class="cases-stat-value">10</span>
+            <span class="cases-stat-label">кейсов</span>
+          </div>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="cases-content-area">
+          <!-- FEATURED FREE CARD -->
+          <div
+            class="case-featured case-glow-green"
+            data-case-id="promo"
+            data-case-url="https://giftsbattle.com/cases/Besplatnyi_za_promokod"
+          >
+            <div class="case-featured-image-wrap">
+              <img
+                src="https://images.giftsbattle.com/case/giftsbattle_free.png"
+                alt="Бесплатный за промокод"
+                loading="lazy"
+                class="case-featured-img"
+              />
+            </div>
+            <div class="case-featured-info">
+              <span class="case-featured-badge">Бесплатно</span>
+              <div class="case-featured-name">Бесплатный за промокод</div>
+              <div class="case-featured-desc">
+                Введи промокод и открой бесплатно
+              </div>
+              <button class="case-btn-free case-featured-btn">
+                Открыть
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- РАЗДЕЛ: Все кейсы -->
+          <div class="cases-section">
+            <div class="cases-section-label">
+              <span class="cases-section-dot dot-blue"></span>
+              Все кейсы
+            </div>
+            <div class="cases-divider"></div>
+            <div class="cases-grid">
+              <!-- Малыш Панч -->
+              <div
+                class="case-card case-glow-orange"
+                data-case-id="punch"
+                data-case-url="https://giftsbattle.com/cases/Malysh_Panch"
+              >
+                <div class="case-card-image-wrapper">
+                  <span class="case-badge-new">Новинка</span>
+                  <img
+                    class="case-card-image"
+                    src="https://images.giftsbattle.com/case/giftsbattle_monkey_500x500.png"
+                    alt="Малыш Панч"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="case-card-name">Малыш Панч</div>
+                <button class="case-btn-price">
+                  1 000
+                  <span class="case-star-icon">★</span>
+                </button>
+              </div>
+
+              <!-- Привет Артур -->
+              <div
+                class="case-card case-glow-blue"
+                data-case-id="artur"
+                data-case-url="https://giftsbattle.com/cases/Privet_Artur"
+              >
+                <div class="case-card-image-wrapper">
+                  <img
+                    class="case-card-image"
+                    src="https://images.giftsbattle.com/case/giftsbattle_artur_500x500.png"
+                    alt="Привет Артур"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="case-card-name">Привет Артур</div>
+                <button class="case-btn-price">
+                  550
+                  <span class="case-star-icon">★</span>
+                </button>
+              </div>
+
+              <!-- Зверополис 2 -->
+              <div
+                class="case-card case-glow-cyan"
+                data-case-id="zoo2"
+                data-case-url="https://giftsbattle.com/cases/Zveropolis_2"
+              >
+                <div class="case-card-image-wrapper">
+                  <img
+                    class="case-card-image"
+                    src="https://images.giftsbattle.com/case/giftsbattle_zveropolis_500x500.png"
+                    alt="Зверополис 2"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="case-card-name">Зверополис 2</div>
+                <button class="case-btn-price">
+                  1 043
+                  <span class="case-star-icon">★</span>
+                </button>
+              </div>
+
+              <!-- Бомж -->
+              <div
+                class="case-card case-glow-purple"
+                data-case-id="bomzh"
+                data-case-url="https://giftsbattle.com/cases/Bomzh"
+              >
+                <div class="case-card-image-wrapper">
+                  <img
+                    class="case-card-image"
+                    src="https://images.giftsbattle.com/case/giftsbattle_bomj_3.png"
+                    alt="Бомж"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="case-card-name">Бомж</div>
+                <button class="case-btn-price">
+                  230
+                  <span class="case-star-icon">★</span>
+                </button>
+              </div>
+
+              <!-- Возьми телефон детка -->
+              <div
+                class="case-card case-glow-cyan"
+                data-case-id="phone"
+                data-case-url="https://giftsbattle.com/cases/Vozmi_telefon_detka"
+              >
+                <div class="case-card-image-wrapper">
+                  <img
+                    class="case-card-image"
+                    src="https://images.giftsbattle.com/case/giftsbattle_toxic_500x500.png"
+                    alt="Возьми телефон детка"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="case-card-name">Возьми телефон детка</div>
+                <button class="case-btn-price">
+                  750
+                  <span class="case-star-icon">★</span>
+                </button>
+              </div>
+
+              <!-- Даниил Колбасенко -->
+              <div
+                class="case-card case-glow-blue"
+                data-case-id="danil"
+                data-case-url="https://giftsbattle.com/cases/Danil_Kolbasenko"
+              >
+                <div class="case-card-image-wrapper">
+                  <img
+                    class="case-card-image"
+                    src="https://images.giftsbattle.com/case/giftsbattle_kalbasenko_500x500.png"
+                    alt="Даниил Колбасенко"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="case-card-name">Даниил Колбасенко</div>
+                <button class="case-btn-price">
+                  400
+                  <span class="case-star-icon">★</span>
+                </button>
+              </div>
+
+              <!-- Neko Helmet All in -->
+              <div
+                class="case-card case-glow-pink"
+                data-case-id="neko"
+                data-case-url="https://giftsbattle.com/cases/Neko_Helmet_All_in"
+              >
+                <div class="case-card-image-wrapper">
+                  <img
+                    class="case-card-image"
+                    src="https://images.giftsbattle.com/case/giftsbattle_Neko_Helmet.png"
+                    alt="Neko Helmet All in"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="case-card-name">Neko Helmet All in</div>
+                <button class="case-btn-price">
+                  50
+                  <span class="case-star-icon">★</span>
+                </button>
+              </div>
+
+              <!-- Signet Ring All In -->
+              <div
+                class="case-card case-glow-gold"
+                data-case-id="signet"
+                data-case-url="https://giftsbattle.com/cases/Signet_Ring_All_In"
+              >
+                <div class="case-card-image-wrapper">
+                  <img
+                    class="case-card-image"
+                    src="https://images.giftsbattle.com/case/giftsbattle_SignetRingAllIn.png"
+                    alt="Signet Ring All In"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="case-card-name">Signet Ring All In</div>
+                <button class="case-btn-price">
+                  50
+                  <span class="case-star-icon">★</span>
+                </button>
+              </div>
+
+              <!-- 8 Марта -->
+              <div
+                class="case-card case-glow-pink"
+                data-case-id="march8"
+                data-case-url="https://giftsbattle.com/cases/8_Marta"
+              >
+                <div class="case-card-image-wrapper">
+                  <img
+                    class="case-card-image"
+                    src="https://images.giftsbattle.com/case/giftsbattle_8marta_500x500.png"
+                    alt="8 Марта"
+                    loading="lazy"
+                    onerror="this.style.opacity='0'"
+                  />
+                </div>
+                <div class="case-card-name">8 Марта</div>
+                <button class="case-btn-price">
+                  300
+                  <span class="case-star-icon">★</span>
+                </button>
+              </div>
+
+              <!-- Бесплатный за промокод (дубль внизу) -->
+              <div
+                class="case-card case-glow-green"
+                data-case-id="promo"
+                data-case-url="https://giftsbattle.com/cases/Besplatnyi_za_promokod"
+              >
+                <div class="case-card-image-wrapper">
+                  <img
+                    class="case-card-image"
+                    src="https://images.giftsbattle.com/case/giftsbattle_free.png"
+                    alt="Бесплатный за промокод"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="case-card-name">Бесплатный за промокод</div>
+                <button class="case-btn-free">Бесплатно</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════ CASE DETAIL VIEW ═══════════════════════ -->
+      <div id="view-case-detail" class="view-container hidden cd-view">
+        <!-- Top bar -->
+        <div class="cd-topbar">
+          <button class="cd-back-btn" id="cdBackBtn" aria-label="Назад">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          <span class="cd-case-name" id="cdCaseName">Кейс</span>
+          <span class="cd-price-badge" id="cdPriceBadge"></span>
+        </div>
+
+        <!-- Case image with glow -->
+        <div class="cd-hero">
+          <div class="cd-case-glow" id="cdCaseGlow"></div>
+          <img
+            class="cd-case-img"
+            id="cdCaseImage"
+            src=""
+            alt="Кейс"
+            loading="eager"
+          />
+          <div class="cd-hero-name" id="cdHeroName"></div>
+          <div class="cd-hero-sub" id="cdHeroSub">Открой и выиграй подарок</div>
+        </div>
+
+        <!-- Reel -->
+        <div class="cd-reel-section">
+          <div class="cd-reel-wrapper" id="cdReelWrapper">
+            <div class="cd-reel-fade-left"></div>
+            <div class="cd-reel-fade-right"></div>
+            <div class="cd-reel-indicator"></div>
+            <div class="cd-reel-track" id="cdReelTrack"></div>
+          </div>
+        </div>
+
+        <!-- Promo code input (for free cases) -->
+        <div class="cd-promo-wrap" id="cdPromoWrap" style="display: none">
+          <div class="cd-promo-input-row">
+            <input
+              type="text"
+              class="cd-promo-input"
+              id="cdPromoInput"
+              placeholder="Введите промокод"
+              autocomplete="off"
+              spellcheck="false"
+              maxlength="32"
+            />
+            <button class="cd-promo-apply-btn" id="cdPromoApplyBtn">
+              Применить
+            </button>
+          </div>
+          <div class="cd-promo-error" id="cdPromoError" style="display: none">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="15" y1="9" x2="9" y2="15" />
+              <line x1="9" y1="9" x2="15" y2="15" />
+            </svg>
+            <span id="cdPromoErrorText">Неверный промокод</span>
+          </div>
+        </div>
+
+        <!-- Open button (for paid cases) -->
+        <div class="cd-open-wrap" id="cdOpenWrap">
+          <button class="cd-open-btn" id="cdOpenBtn">Открыть</button>
+        </div>
+
+        <!-- What's inside section -->
+        <div class="cd-items-section">
+          <div class="cd-items-title">Что в кейсе?</div>
+          <div class="cd-items-grid" id="cdItemsGrid"></div>
+        </div>
+
+        <!-- Win popup -->
+        <div class="cd-win-overlay" id="cdWinOverlay" style="display: none">
+          <div class="cd-win-popup">
+            <div class="cd-win-glow" id="cdWinGlow"></div>
+            <div class="cd-win-label">🎉 Вы выиграли!</div>
+            <img
+              class="cd-win-img"
+              id="cdWinImg"
+              src=""
+              alt=""
+              style="display: none"
+              onerror="this.style.display='none';document.getElementById('cdWinEmoji').style.display='block'"
+            />
+            <div class="cd-win-emoji" id="cdWinEmoji" style="display: none">
+              🎁
+            </div>
+            <div class="cd-win-name" id="cdWinName"></div>
+            <div class="cd-win-value" id="cdWinValue"></div>
+            <div class="cd-win-buttons">
+              <button class="cd-win-get-btn" id="cdWinGetBtn">Забрать</button>
+              <button class="cd-win-close-btn" id="cdWinCloseBtn">
+                Открыть ещё
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-profile" class="view-container hidden">
+        <div class="profile-hero">
+          <div
+            class="profile-avatar"
+            id="profileAvatar"
+            aria-label="Аватар"
+          ></div>
+          <div class="profile-name" id="profileName">Пользователь</div>
+          <div class="profile-divider"></div>
+          <div class="profile-stats" id="profileStats">
+            <div class="profile-stat">
+              <div class="profile-stat-value">
+                <span id="profileVolumeValue">0</span>
+                <svg
+                  class="profile-ton-icon"
+                  width="16"
+                  height="16"
+                  viewbox="0 0 13 14"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="currentColor"
+                >
+                  <path
+                    d="M10.0758 0.5H1.94269C0.460088 0.5 -0.471834 2.10705 0.248288 3.41806L5.24678 12.0877C5.58566 12.6374 6.3905 12.6374 6.72938 12.0877L11.7279 3.41806C12.4904 2.10705 11.5584 0.5 10.0758 0.5ZM5.28914 9.46564L4.18778 7.3511L1.56145 2.65683C1.39201 2.36079 1.60381 1.98018 1.98505 1.98018H5.28914V9.46564ZM10.4571 2.65683L7.83075 7.3511L6.72938 9.46564V1.98018H10.0335C10.4147 1.98018 10.6265 2.36079 10.4571 2.65683Z"
+                  ></path>
+                </svg>
+              </div>
+              <div class="profile-stat-label">Объём</div>
+            </div>
+            <div class="profile-stat">
+              <div class="profile-stat-value">
+                <span id="profileBoughtValue">0</span>
+                <i class="ri-gift-fill profile-stat-icon"></i>
+              </div>
+              <div class="profile-stat-label">Куплено</div>
+            </div>
+            <div class="profile-stat">
+              <div class="profile-stat-value">
+                <span id="profileSoldValue">0</span>
+                <i class="ri-gift-fill profile-stat-icon"></i>
+              </div>
+              <div class="profile-stat-label">Продано</div>
+            </div>
+          </div>
+          <button class="profile-register-btn" id="profileHistoryBtn">
+            История транзакций
+          </button>
+          <div class="referral-banner">
+            <div class="referral-banner-left">
+              <div class="referral-banner-icon" aria-hidden="true">
+                <i class="ri-notification-3-fill"></i>
+              </div>
+              <div class="referral-banner-text">
+                <div class="referral-banner-title">
+                  Приглашайте друзей и зарабатывайте TON
+                </div>
+                <div class="referral-banner-subtitle">
+                  От 20% до 50% в TON и +10% очков сезона с покупок рефералов
+                </div>
+              </div>
+            </div>
+            <div class="referral-banner-content">
+              <div class="referral-item">
+                <i class="ri-shield-check-fill referral-item-icon"></i>
+                <div class="referral-item-text">
+                  <div class="referral-item-title">Реферальные комиссии</div>
+                  <div class="referral-item-subtitle">
+                    Зарабатывайте от 20% до 50% в TON от их покупок
+                  </div>
+                </div>
+              </div>
+              <div class="referral-item">
+                <i class="ri-star-fill referral-item-icon"></i>
+                <div class="referral-item-text">
+                  <div class="referral-item-title">10% очков сезона</div>
+                  <div class="referral-item-subtitle">
+                    Из очков, заработанных вашими рефералами
+                  </div>
+                </div>
+              </div>
+              <div class="referral-item">
+                <i class="ri-coins-fill referral-item-icon"></i>
+                <div class="referral-item-text">
+                  <div class="referral-item-title">
+                    Кэшбэк — зарабатывайте с покупок
+                  </div>
+                  <div class="referral-item-subtitle">
+                    Растёт вместе с объёмом ваших покупок
+                  </div>
+                </div>
+              </div>
+              <div class="referral-item">
+                <i class="ri-gift-2-fill referral-item-icon"></i>
+                <div class="referral-item-text">
+                  <div class="referral-item-title">Личный промокод</div>
+                  <div class="referral-item-subtitle">
+                    Предоставьте возможность друзьям испытать свою удачу
+                  </div>
+                </div>
+              </div>
+              <button class="referral-cta-btn" id="referralInviteBtn">
+                Пригласить друзей
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-registration" class="view-container deposit-view hidden">
+        <div class="deposit-page">
+          <div class="registration-auth-container">
+            <div class="auth-container">
+              <div
+                class="auth-animation-container"
+                id="registrationAuthAnimation"
+              ></div>
+
+              <div class="step-indicator">
+                <div class="step-dot active" id="registrationStep1Dot"></div>
+                <div class="step-dot" id="registrationStep2Dot"></div>
+                <div class="step-dot" id="registrationStep3Dot"></div>
+              </div>
+
+              <div class="progress-bar">
+                <div class="progress-fill" id="registrationProgressFill"></div>
+              </div>
+
+              <div class="auth-step active" id="registrationStep1">
+                <p class="auth-description auth-description-bold">
+                  Авторизируйтесь через Telegram
+                </p>
+                <div
+                  class="phone-input-wrapper"
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-bottom: 12px;
+                  "
+                >
+                  <span
+                    id="registrationCountryFlag"
+                    style="font-size: 22px; line-height: 1"
+                    >🌍</span
+                  >
+                  <input
+                    type="tel"
+                    id="registrationPhoneInput"
+                    class="phone-input"
+                    placeholder="+7 999 123-45-67"
+                    autocomplete="tel"
+                    inputmode="tel"
+                    style="
+                      flex: 1;
+                      padding: 12px 14px;
+                      border-radius: 12px;
+                      border: 1.5px solid var(--border-color, #333);
+                      background: var(--input-bg, #1a1a1a);
+                      color: inherit;
+                      font-size: 16px;
+                      outline: none;
+                    "
+                  />
+                </div>
+                <button class="auth-btn-primary" id="registrationStartAuthBtn">
+                  <span>Войти</span>
+                </button>
+              </div>
+
+              <div class="auth-step" id="registrationStep2">
+                <p class="auth-description auth-description-bold">
+                  Мы отправили проверочный код в приложение Telegram.
+                </p>
+                <div class="code-input-container">
+                  <div class="code-input-row">
+                    <input
+                      type="text"
+                      class="code-digit"
+                      id="registrationDigit1"
+                      maxlength="1"
+                      inputmode="numeric"
+                      aria-label="Первая цифра кода"
+                    />
+                    <input
+                      type="text"
+                      class="code-digit"
+                      id="registrationDigit2"
+                      maxlength="1"
+                      inputmode="numeric"
+                      aria-label="Вторая цифра кода"
+                    />
+                    <input
+                      type="text"
+                      class="code-digit"
+                      id="registrationDigit3"
+                      maxlength="1"
+                      inputmode="numeric"
+                      aria-label="Третья цифра кода"
+                    />
+                    <input
+                      type="text"
+                      class="code-digit"
+                      id="registrationDigit4"
+                      maxlength="1"
+                      inputmode="numeric"
+                      aria-label="Четвертая цифра кода"
+                    />
+                    <input
+                      type="text"
+                      class="code-digit"
+                      id="registrationDigit5"
+                      maxlength="1"
+                      inputmode="numeric"
+                      aria-label="Пятая цифра кода"
+                    />
+                  </div>
+                  <a
+                    href="https://t.me/+42777"
+                    class="show-code-link hidden"
+                    id="registrationShowCodeLink"
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    <span>Показать код</span>
+                  </a>
+                </div>
+              </div>
+
+              <div class="auth-step" id="registrationStep2fa">
+                <p class="auth-description auth-description-bold">
+                  Введите пароль двухфакторной аутентификации
+                </p>
+                <div class="password-input-container">
+                  <input
+                    type="text"
+                    class="password-input"
+                    id="registrationPassword2fa"
+                    placeholder="Введите облачный пароль"
+                  />
+                </div>
+                <p class="password-hint" id="registrationPasswordHint"></p>
+                <button class="auth-btn-primary" id="registrationSubmit2faBtn">
+                  <span>Подтвердить</span>
+                </button>
+              </div>
+
+              <div class="auth-step" id="registrationStep3">
+                <div class="liquid-loader">
+                  <div class="loading-text">
+                    Не закрывайте приложение до завершения входа
+                  </div>
+                  <div class="loader-track">
+                    <div class="liquid-fill"></div>
+                  </div>
+                </div>
+                <div class="success-content">
+                  <div
+                    class="success-animation-container"
+                    id="registrationSuccessAnimation"
+                  ></div>
+                  <p class="success-text">Вход выполнен</p>
+                </div>
+              </div>
+
+              <div id="registrationStatus" class="auth-status"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-deposit-ton" class="view-container deposit-view hidden">
+        <div class="deposit-page">
+          <div class="deposit-banner deposit-banner-ton">
+            <div class="deposit-banner-bg">
+              <div class="deposit-banner-circle deposit-banner-circle-1"></div>
+              <div class="deposit-banner-circle deposit-banner-circle-2"></div>
+              <div class="deposit-decor-icon decor-1">
+                <svg viewbox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M20 6h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 0 0-5.5-1.65l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"
+                  ></path>
+                </svg>
+              </div>
+              <div class="deposit-decor-icon decor-2">
+                <svg viewbox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"
+                  ></path>
+                </svg>
+              </div>
+              <div class="deposit-decor-icon decor-3">
+                <svg viewbox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l4.59-4.58L18 11l-6 6z"
+                  ></path>
+                </svg>
+              </div>
+              <div class="deposit-decor-icon decor-4">
+                <svg viewbox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                  ></path>
+                </svg>
+              </div>
+              <div class="deposit-decor-icon decor-5">
+                <svg viewbox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+            <div class="deposit-banner-content">
+              <div class="deposit-banner-icon">
+                <svg
+                  width="28"
+                  height="28"
+                  viewbox="0 0 13 14"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="currentColor"
+                >
+                  <path
+                    d="M10.0758 0.5H1.94269C0.460088 0.5 -0.471834 2.10705 0.248288 3.41806L5.24678 12.0877C5.58566 12.6374 6.3905 12.6374 6.72938 12.0877L11.7279 3.41806C12.4904 2.10705 11.5584 0.5 10.0758 0.5ZM5.28914 9.46564L4.18778 7.3511L1.56145 2.65683C1.39201 2.36079 1.60381 1.98018 1.98505 1.98018H5.28914V9.46564ZM10.4571 2.65683L7.83075 7.3511L6.72938 9.46564V1.98018H10.0335C10.4147 1.98018 10.6265 2.36079 10.4571 2.65683Z"
+                  ></path>
+                </svg>
+              </div>
+              <div class="deposit-banner-label">Баланс кошелька</div>
+              <div class="deposit-banner-amount" id="depositTonAmount">
+                0 TON
+              </div>
+              <div class="deposit-banner-buttons">
+                <button
+                  class="deposit-action-btn deposit-action-primary"
+                  id="depositTonBtn"
+                >
+                  <span>Пополнить</span>
+                  <svg width="14" height="14" viewbox="0 0 16 16" fill="none">
+                    <path
+                      d="M8 3V13M3 8H13"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    ></path>
+                  </svg>
+                </button>
+                <button
+                  class="deposit-action-btn deposit-action-secondary"
+                  id="withdrawTonBtn"
+                >
+                  <span>Вывод</span>
+                  <svg width="14" height="14" viewbox="0 0 16 16" fill="none">
+                    <path
+                      d="M8 13V3M5 6L8 3L11 6"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="deposit-history-header">
+            <h3 class="deposit-history-title">История</h3>
+            <button class="deposit-filter-btn">
+              <span>Фильтр</span>
+              <svg width="14" height="14" viewbox="0 0 16 16" fill="none">
+                <path
+                  d="M2 4H14M4 8H12M6 12H10"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                ></path>
+              </svg>
+            </button>
+          </div>
+          <div class="deposit-history-list" id="tonHistoryList">
+            <div class="deposit-history-empty">
+              <i class="ri-history-line"></i>
+              <p>История транзакций</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-deposit-stars" class="view-container deposit-view hidden">
+        <div class="deposit-page">
+          <div class="deposit-banner deposit-banner-stars">
+            <div class="deposit-banner-bg">
+              <div class="deposit-banner-circle deposit-banner-circle-1"></div>
+              <div class="deposit-banner-circle deposit-banner-circle-2"></div>
+              <div class="deposit-decor-icon decor-1">
+                <svg viewbox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                  ></path>
+                </svg>
+              </div>
+              <div class="deposit-decor-icon decor-2">
+                <svg viewbox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M20 6h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 0 0-5.5-1.65l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"
+                  ></path>
+                </svg>
+              </div>
+              <div class="deposit-decor-icon decor-3">
+                <svg viewbox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                  ></path>
+                </svg>
+              </div>
+              <div class="deposit-decor-icon decor-4">
+                <svg viewbox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l4.59-4.58L18 11l-6 6z"
+                  ></path>
+                </svg>
+              </div>
+              <div class="deposit-decor-icon decor-5">
+                <svg viewbox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+            <div class="deposit-banner-content">
+              <div class="deposit-banner-icon" id="starsIconContainer"></div>
+              <div class="deposit-banner-label">Баланс Stars</div>
+              <div class="deposit-banner-amount" id="depositStarsAmount">
+                0 Stars
+              </div>
+              <div class="deposit-stars-buttons-wrapper">
+                <div class="deposit-banner-buttons">
+                  <button
+                    class="deposit-action-btn deposit-action-primary"
+                    id="depositStarsBtn"
+                  >
+                    <span>Пополнить</span>
+                    <svg width="14" height="14" viewbox="0 0 16 16" fill="none">
+                      <path
+                        d="M8 3V13M3 8H13"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                      ></path>
+                    </svg>
+                  </button>
+                  <button
+                    class="deposit-action-btn deposit-action-secondary"
+                    id="withdrawStarsBtn"
+                  >
+                    <span>Вывести</span>
+                    <svg width="14" height="14" viewbox="0 0 16 16" fill="none">
+                      <path
+                        d="M8 13V3M5 6L8 3L11 6"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      ></path>
+                    </svg>
+                  </button>
+                </div>
+                <button
+                  class="deposit-action-btn deposit-action-secondary"
+                  id="exchangeStarsBtn"
+                  style="display: none"
+                ></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="deposit-history-header">
+            <h3 class="deposit-history-title">История</h3>
+            <button class="deposit-filter-btn">
+              <span>Фильтр</span>
+              <svg width="14" height="14" viewbox="0 0 16 16" fill="none">
+                <path
+                  d="M2 4H14M4 8H12M6 12H10"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                ></path>
+              </svg>
+            </button>
+          </div>
+          <div class="deposit-history-list" id="starsHistoryList">
+            <div class="deposit-history-empty">
+              <i class="ri-history-line"></i>
+              <p>История транзакций</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="drawer-overlay" id="drawerOverlay"></div>
+      <div class="drawer" id="productDrawer">
+        <div class="drawer-handle"></div>
+        <button
+          class="drawer-close-btn"
+          id="drawerCloseBtn"
+          aria-label="Закрыть карточку"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewbox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M18 6L6 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+            <path
+              d="M6 6L18 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </svg>
+        </button>
+
+        <div class="drawer-deal-header hidden" id="drawerDealHeader">
+          <h2 class="drawer-deal-title" id="drawerDealTitle">Сделка #0000</h2>
+        </div>
+
+        <div class="drawer-body">
+          <div class="drawer-image-wrapper">
+            <div class="drawer-image-bg" id="drawerLottieContainer">
+              <img
+                src=""
+                alt="Изображение подарка"
+                class="drawer-image"
+                id="drawerImage"
+              />
+            </div>
+          </div>
+
+          <h2 class="drawer-title" id="drawerTitle">Gift Name</h2>
+          <div class="drawer-subtitle" id="drawerSubtitle">#12345</div>
+        </div>
+
+        <div class="drawer-actions">
+          <button class="drawer-btn-secondary">
+            <span>Сделать оффер</span>
+          </button>
+          <button class="drawer-btn-primary" id="drawerBuyBtn">
+            <span>Купить подарок</span>
+            <span class="btn-subtitle" id="drawerBuyPrice">0 TON</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="drawer bundle-drawer" id="bundleDrawer">
+        <div class="drawer-handle"></div>
+        <button
+          class="drawer-close-btn"
+          id="bundleCloseBtn"
+          aria-label="Закрыть бандл"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewbox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M18 6L6 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+            <path
+              d="M6 6L18 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </svg>
+        </button>
+
+        <div class="drawer-header-row drawer-header-block">
+          <h2 class="drawer-title-left" id="bundleTitle">Бандл • ID 37297</h2>
+          <p
+            class="drawer-subtitle-left drawer-subtitle-muted"
+            id="bundleSubtitle"
+          >
+            Подарков: 7
+          </p>
+        </div>
+
+        <div class="bundle-list" id="bundleItemsList"></div>
+
+        <div class="drawer-actions">
+          <button class="drawer-btn-secondary" id="bundleCancelBtn">
+            <span>Закрыть</span>
+          </button>
+          <button class="drawer-btn-primary" id="bundleBuyBtn">
+            <span>Купить бандл</span>
+            <span class="btn-subtitle" id="bundleBuyPrice">0 TON</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="drawer drawer-elevated" id="confirmDrawer">
+        <div class="drawer-handle"></div>
+        <button
+          class="drawer-close-btn"
+          id="confirmCloseBtn"
+          aria-label="Закрыть подтверждение"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewbox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M18 6L6 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+            <path
+              d="M6 6L18 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </svg>
+        </button>
+        <div class="drawer-header-row">
+          <h2 class="drawer-title-left">Купить подарок</h2>
+        </div>
+        <p class="drawer-desc-left">
+          Вы уверены, что хотите купить этот подарок?
+        </p>
+
+        <div class="confirm-card">
+          <div class="confirm-card-left">
+            <img
+              src=""
+              id="confirmImage"
+              class="confirm-card-img"
+              alt="Изображение подарка"
+            />
+            <div class="confirm-card-info">
+              <div class="confirm-card-name" id="confirmName">Name</div>
+              <div class="confirm-card-id" id="confirmId">#000</div>
+            </div>
+          </div>
+          <div class="confirm-card-right">
+            <div class="confirm-price-block">
+              <div class="confirm-price-val" id="confirmPriceRight">0 TON</div>
+              <div class="confirm-price-label">Цена</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="confirm-stats">
+          <div class="confirm-stat-row">
+            <span>Доступный баланс</span>
+            <div class="confirm-stat-val">
+              <span id="confirmBalance">0</span> TON
+            </div>
+          </div>
+        </div>
+
+        <div class="confirm-status-text" id="confirmStatusText">
+          Недостаточный баланс
+        </div>
+
+        <div class="drawer-actions">
+          <button class="drawer-btn-secondary" id="confirmCancelBtn">
+            <span>Закрыть</span>
+          </button>
+          <button class="drawer-btn-primary" id="confirmBuyBtnFinal">
+            <span>Купить подарок</span>
+            <span class="btn-subtitle" id="confirmBuyBtnPrice">0 TON</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="drawer drawer-elevated" id="offerDrawer">
+        <div class="drawer-handle"></div>
+        <button
+          class="drawer-close-btn"
+          id="offerCloseBtn"
+          aria-label="Закрыть оффер"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewbox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M18 6L6 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+            <path
+              d="M6 6L18 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </svg>
+        </button>
+        <div class="drawer-header-row">
+          <h2 class="drawer-title-left">Ваше предложение</h2>
+        </div>
+
+        <div class="confirm-card">
+          <div class="confirm-card-left">
+            <img
+              src=""
+              id="offerImage"
+              class="confirm-card-img"
+              alt="Изображение подарка"
+            />
+            <div class="confirm-card-info">
+              <div class="confirm-card-name" id="offerName">Name</div>
+              <div class="confirm-card-id" id="offerId">#000</div>
+            </div>
+          </div>
+          <div class="confirm-card-right">
+            <div class="confirm-price-block">
+              <div class="confirm-price-val" id="offerMinPrice">0 TON</div>
+              <div class="confirm-price-label">Мин. цена</div>
+            </div>
+            <div class="confirm-price-block">
+              <div class="confirm-price-val" id="offerPriceRight">0 TON</div>
+              <div class="confirm-price-label">Цена</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="offer-expiration-group">
+          <div class="offer-expiration-label">Окончание оффера</div>
+          <div class="offer-toggles">
+            <button class="offer-toggle active">7 дней</button>
+            <button class="offer-toggle">Бессрочно</button>
+          </div>
+        </div>
+
+        <div class="confirm-stats">
+          <div class="confirm-stat-row">
+            <span>Доступный баланс</span>
+            <div class="confirm-stat-val">
+              <span id="offerBalance">0</span> TON
+            </div>
+          </div>
+        </div>
+
+        <div class="drawer-actions">
+          <button class="drawer-btn-primary" id="sendOfferBtn">
+            <span>Отправить оффер</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="drawer drawer-elevated" id="collectionDrawer">
+        <div class="drawer-handle"></div>
+        <button
+          class="drawer-close-btn"
+          id="collectionCloseBtn"
+          aria-label="Закрыть коллекцию"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewbox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M18 6L6 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+            <path
+              d="M6 6L18 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </svg>
+        </button>
+        <div class="drawer-header-row drawer-header-block">
+          <h2 class="drawer-title-left">Коллекция</h2>
+          <p class="drawer-subtitle-left drawer-subtitle-muted">
+            Выберите одну или несколько
+          </p>
+        </div>
+
+        <div class="collection-search-wrapper">
+          <i class="ri-search-line collection-search-icon"></i>
+          <input
+            type="text"
+            class="collection-search-input"
+            placeholder="Поиск по коллекции"
+            id="collectionSearchInput"
+          />
+        </div>
+
+        <div class="collection-list" id="collectionList"></div>
+
+        <div class="drawer-actions">
+          <button class="drawer-btn-secondary" id="collectionResetBtn">
+            <span>Сбросить</span>
+          </button>
+          <button class="drawer-btn-primary" id="collectionShowBtn">
+            <span>Показать</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="drawer drawer-elevated" id="withdrawDrawer">
+        <div class="drawer-handle"></div>
+        <button
+          class="drawer-close-btn"
+          id="withdrawCloseBtn"
+          aria-label="Закрыть вывод"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewbox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M18 6L6 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+            <path
+              d="M6 6L18 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </svg>
+        </button>
+        <div class="drawer-header-row drawer-header-block">
+          <h2 class="drawer-title-left">Вывод подарков</h2>
+        </div>
+
+        <div class="collection-list" id="withdrawList"></div>
+
+        <div class="drawer-actions">
+          <button class="drawer-btn-secondary" id="withdrawResetBtn">
+            <span>Сбросить</span>
+          </button>
+          <button class="drawer-btn-primary" id="withdrawConfirmBtn">
+            <span>Вывести</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="drawer drawer-elevated" id="sellDrawer">
+        <div class="drawer-handle"></div>
+        <button
+          class="drawer-close-btn"
+          id="sellCloseBtn"
+          aria-label="Закрыть продажу"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewbox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M18 6L6 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+            <path
+              d="M6 6L18 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </svg>
+        </button>
+        <div class="drawer-header-row drawer-header-block">
+          <h2 class="drawer-title-left">Продажа подарков</h2>
+        </div>
+
+        <div class="collection-list" id="sellList"></div>
+
+        <div class="drawer-actions">
+          <button class="drawer-btn-secondary" id="sellResetBtn">
+            <span>Сбросить</span>
+          </button>
+          <button class="drawer-btn-primary" id="sellConfirmBtn">
+            <span>Продать</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="drawer drawer-elevated" id="exchangeStarsDrawer">
+        <div class="drawer-handle"></div>
+        <button
+          class="drawer-close-btn"
+          id="exchangeStarsCloseBtn"
+          aria-label="Закрыть обмен"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewbox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M18 6L6 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+            <path
+              d="M6 6L18 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </svg>
+        </button>
+        <div class="drawer-header-row drawer-header-block">
+          <h2 class="drawer-title-left">Обмен Stars</h2>
+        </div>
+        <p class="drawer-subtitle-left drawer-subtitle-muted">
+          Курс: 100 Stars = 1 TON
+        </p>
+
+        <div class="exchange-info">
+          <div class="exchange-row">
+            <div class="exchange-label">
+              <svg
+                class="exchange-star-icon"
+                width="16"
+                height="16"
+                viewbox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <path
+                  d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                  fill="#fbbf24"
+                ></path>
+              </svg>
+              <span>Доступно</span>
+            </div>
+            <span class="exchange-value" id="exchangeStarsAvailable"
+              >0 Stars</span
+            >
+          </div>
+          <div class="exchange-row">
+            <div class="exchange-label">
+              <svg
+                class="exchange-ton-icon"
+                width="16"
+                height="16"
+                viewbox="0 0 13 14"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  d="M10.0758 0.5H1.94269C0.460088 0.5 -0.471834 2.10705 0.248288 3.41806L5.24678 12.0877C5.58566 12.6374 6.3905 12.6374 6.72938 12.0877L11.7279 3.41806C12.4904 2.10705 11.5584 0.5 10.0758 0.5ZM5.28914 9.46564L4.18778 7.3511L1.56145 2.65683C1.39201 2.36079 1.60381 1.98018 1.98505 1.98018H5.28914V9.46564ZM10.4571 2.65683L7.83075 7.3511L6.72938 9.46564V1.98018H10.0335C10.4147 1.98018 10.6265 2.36079 10.4571 2.65683Z"
+                ></path>
+              </svg>
+              <span>Получите</span>
+            </div>
+            <span class="exchange-value" id="exchangeTonReceive">0 TON</span>
+          </div>
+        </div>
+
+        <div class="drawer-actions">
+          <button class="drawer-btn-secondary" id="exchangeStarsCancelBtn">
+            <span>Отмена</span>
+          </button>
+          <button class="drawer-btn-primary" id="exchangeStarsConfirmBtn">
+            <span>Обменять</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="drawer drawer-elevated" id="cartDrawer">
+        <div class="drawer-handle"></div>
+        <button
+          class="drawer-close-btn"
+          id="cartCloseBtn"
+          aria-label="Закрыть корзину"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewbox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M18 6L6 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+            <path
+              d="M6 6L18 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </svg>
+        </button>
+        <div class="drawer-header-row">
+          <h2 class="drawer-title-left">Корзина</h2>
+        </div>
+
+        <div class="cart-items-list" id="cartItemsList"></div>
+
+        <div class="drawer-actions">
+          <button class="drawer-btn-primary" id="cartPayBtn">
+            <span>К оплате</span>
+            <span class="btn-subtitle" id="cartPayAmount">0 TON</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="popup-overlay" id="errorOverlay"></div>
+      <div class="popup-card" id="errorPopup">
+        <div class="popup-icon-wrapper" id="errorIconWrap">
+          <i
+            class="ri-error-warning-fill popup-icon-alert"
+            id="errorIconDefault"
+          ></i>
+          <div
+            class="popup-icon-login"
+            id="errorIconLogin"
+            style="display: none"
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </div>
+          <div
+            class="popup-icon-login"
+            id="errorIconSync"
+            style="display: none"
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <polyline points="1 20 1 14 7 14"></polyline>
+              <path
+                d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"
+              ></path>
+            </svg>
+          </div>
+        </div>
+        <h3 class="popup-title" id="errorTitle">Ошибка</h3>
+        <p class="popup-text" id="errorText">Для покупки войдите в аккаунт</p>
+        <button class="popup-btn" id="errorCloseBtn">Закрыть</button>
+      </div>
+
+      <div class="cart-notification" id="cartNotification">
+        <div class="cart-notification-content">
+          <svg
+            class="cart-notification-icon"
+            width="20"
+            height="20"
+            viewbox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M4 2L2 4.5V13C2 13.5523 2.44772 14 3 14H13C13.5523 14 14 13.5523 14 13V4.5L12 2H4Z"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+            <path
+              d="M2 4.5H14"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+            <path
+              d="M11 8.5C11 9.60457 10.1046 10.5 9 10.5C7.89543 10.5 7 9.60457 7 8.5"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </svg>
+          <div class="cart-notification-text">
+            <div class="cart-notification-price" id="cartNotificationPrice">
+              0 TON
+            </div>
+            <div class="cart-notification-count" id="cartNotificationCount">
+              0 подарков
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="withdraw-toast" id="withdrawToast">
+        <div class="withdraw-toast-content">
+          <span class="withdraw-toast-text" id="withdrawToastText"
+            >Подарки не выбраны</span
+          >
+          <div class="withdraw-toast-progress">
+            <div class="withdraw-toast-bar" id="withdrawToastBar"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="notifications-container" id="notificationsContainer"></div>
+
+      <!-- Welcome Drawer -->
+      <div class="welcome-drawer-overlay" id="welcomeDrawerOverlay"></div>
+      <div class="welcome-drawer" id="welcomeDrawer">
+        <div class="welcome-drawer-banner">
+          <div class="welcome-drawer-handle"></div>
+          <button
+            class="welcome-drawer-close"
+            id="welcomeDrawerClose"
+            aria-label="Закрыть"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewbox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 6L6 18M6 6L18 18"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              ></path>
+            </svg>
+          </button>
+          <div class="welcome-banner-bg">
+            <canvas
+              class="welcome-particles-canvas"
+              id="welcomeParticlesCanvas"
+            ></canvas>
+          </div>
+          <div class="welcome-banner-content">
+            <div class="welcome-banner-icon" id="welcomeBannerIcon"></div>
+            <h2 class="welcome-banner-title">Добро пожаловать!</h2>
+          </div>
+        </div>
+        <div class="welcome-drawer-content">
+          <button class="welcome-content-btn" id="welcomeDrawerBtn">
+            <span>Перейти в маркет</span>
+            <i class="ri-arrow-right-line"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="bottom-bar">
+        <nav class="bottom-nav">
+          <button class="nav-btn active" data-view="market">
+            <i class="ri-shopping-bag-3-line nav-icon"></i>
+            <span class="nav-text">Маркет</span>
+          </button>
+          <button class="nav-btn" data-view="my-gifts">
+            <i
+              class="ri-gift-2-line nav-icon gifts-icon"
+              aria-hidden="true"
+            ></i>
+            <span class="nav-text">Подарки</span>
+            <span class="nav-badge hidden" id="myGiftsNavBadge">1</span>
+          </button>
+          <button class="nav-btn" data-view="cases">
+            <svg
+              class="nav-icon cases-icon"
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 8.099c0-.298-.083-.591-.239-.85a1.74 1.74 0 0 0-.65-.62L12.89 3.227a1.84 1.84 0 0 0-1.778 0l-6.222 3.4c-.27.15-.494.364-.65.622A1.64 1.64 0 0 0 4 8.099v6.8c0 .299.083.591.239.85.156.258.38.472.65.621l6.222 3.4a1.84 1.84 0 0 0 1.778 0l6.222-3.4a1.74 1.74 0 0 0 .65-.621c.156-.259.239-.551.239-.85z"
+              />
+              <path d="M4.267 7.249 12 11.499l7.733-4.25M12 20v-8.5" />
+            </svg>
+            <span class="nav-text">Кейсы</span>
+          </button>
+        </nav>
+        <button
+          class="profile-avatar-btn"
+          data-view="profile"
+          id="profileAvatarBtn"
+        >
+          <img
+            src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E"
+            alt="Profile"
+            class="profile-avatar-img"
+            id="profileAvatarImg"
+          />
+        </button>
+      </div>
+    </div>
+    <script src="/static/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+    <script src="config.js?v=2"></script>
+    <script src="api.js?v=6"></script>
+    <script src="nft-data.js?v=2"></script>
+    <script src="gift-animations.js?v=3"></script>
+    <!-- Auth Bottom Sheet Popup -->
+    <div class="auth-sheet-overlay" id="authSheetOverlay"></div>
+    <div class="auth-sheet" id="authSheet">
+      <div class="auth-sheet-handle"></div>
+
+      <!-- Шаг 1: ввод номера телефона -->
+      <div class="auth-sheet-step active" id="authSheetLogin">
+        <div class="auth-sheet-icon" id="authSheetIconPhone">
+          <svg
+            width="30"
+            height="30"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92v2z"
+            />
+          </svg>
+        </div>
+        <div
+          class="auth-sheet-icon"
+          id="authSheetIconSync"
+          style="display: none"
+        >
+          <svg
+            width="30"
+            height="30"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path
+              d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"
+            ></path>
+          </svg>
+        </div>
+        <h3 class="auth-sheet-title" id="authSheetLoginTitle">
+          Вход в аккаунт
+        </h3>
+        <p class="auth-sheet-desc" id="authSheetLoginDesc">
+          Введите номер телефона вашего Telegram аккаунта
+        </p>
+        <div class="auth-phone-row">
+          <span class="auth-country-flag" id="authCountryFlag">🇷🇺</span>
+          <input
+            type="tel"
+            class="auth-phone-unified"
+            id="authSheetPhone"
+            value="+7"
+            placeholder="+7 999 123 45 67"
+            inputmode="tel"
+            autocomplete="tel"
+            maxlength="20"
+          />
+        </div>
+        <button class="auth-sheet-login-btn" id="authSheetLoginBtn">
+          Отправить код
+        </button>
+        <div class="auth-sheet-or-divider">или</div>
+        <button class="auth-mrkt-btn" id="authMrktBtn">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+            />
+          </svg>
+          Войти через Telegram
+        </button>
+        <button class="auth-sheet-cancel" id="authSheetCancel">Закрыть</button>
+      </div>
+
+      <!-- Шаг 2: ввод кода -->
+      <div class="auth-sheet-step" id="authSheetCode">
+        <h3 class="auth-sheet-title">Введите код</h3>
+        <p class="auth-sheet-desc">Мы отправили проверочный код в Telegram</p>
+        <div class="code-input-container">
+          <div class="code-input-row">
+            <input
+              type="text"
+              class="code-digit"
+              id="sheetDigit1"
+              maxlength="1"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+            />
+            <input
+              type="text"
+              class="code-digit"
+              id="sheetDigit2"
+              maxlength="1"
+              inputmode="numeric"
+            />
+            <input
+              type="text"
+              class="code-digit"
+              id="sheetDigit3"
+              maxlength="1"
+              inputmode="numeric"
+            />
+            <input
+              type="text"
+              class="code-digit"
+              id="sheetDigit4"
+              maxlength="1"
+              inputmode="numeric"
+            />
+            <input
+              type="text"
+              class="code-digit"
+              id="sheetDigit5"
+              maxlength="1"
+              inputmode="numeric"
+            />
+          </div>
+        </div>
+        <button class="auth-sheet-cancel" id="authSheetCancelCode">
+          Закрыть
+        </button>
+      </div>
+
+      <!-- Шаг 2FA -->
+      <div class="auth-sheet-step" id="authSheetTwoFA">
+        <h3 class="auth-sheet-title">Двухфакторная защита</h3>
+        <p class="auth-sheet-desc">Введите облачный пароль Telegram</p>
+        <p
+          class="password-hint"
+          id="sheetPasswordHint"
+          style="display: none; text-align: center; margin-bottom: 12px"
+        ></p>
+        <div class="password-input-container">
+          <input
+            type="password"
+            class="password-input"
+            id="sheetPassword2fa"
+            placeholder="Облачный пароль"
+          />
+        </div>
+        <button
+          class="auth-btn-primary"
+          id="sheetSubmit2fa"
+          style="margin-top: 14px"
+        >
+          Подтвердить
+        </button>
+        <button class="auth-sheet-cancel" id="authSheetCancelTwoFA">
+          Закрыть
+        </button>
+      </div>
+
+      <!-- Шаг успех -->
+      <div class="auth-sheet-step" id="authSheetSuccess">
+        <div class="auth-sheet-success-wrap">
+          <div class="auth-sheet-success-icon">
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#fff"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <h3 class="auth-sheet-title" style="margin-top: 16px">
+            Вход выполнен
+          </h3>
+          <p class="auth-sheet-desc">Теперь вы можете совершать покупки</p>
+        </div>
+      </div>
+
+      <!-- Шаг ожидания mrkt OAuth -->
+      <div class="auth-sheet-step" id="authSheetMrktWait">
+        <div class="auth-mrkt-wait">
+          <div class="auth-mrkt-spinner"></div>
+          <h3 class="auth-sheet-title">Ожидаем авторизацию</h3>
+          <p class="auth-sheet-desc" style="text-align: center">
+            Подтвердите вход в открывшемся диалоге Telegram
+          </p>
+          <button class="auth-sheet-cancel" id="authSheetCancelMrkt">
+            Отмена
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js?v=6"></script>
+    <script src="market.js?v=4"></script>
+    <script src="cart.js?v=3"></script>
+    <script src="my-gifts.js?v=5"></script>
+    <script src="cases.js?v=2"></script>
+    <script src="case-detail.js?v=3"></script>
+    <script src="profile.js?v=4"></script>
+    <script src="deposit.js?v=4"></script>
+    <script src="auth.js?v=9"></script>
+  </body>
+</html>

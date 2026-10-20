@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  bot:
+    build: .
+    container_name: matrix-market-bot
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./sessions:/app/sessions
+      - ./tdata:/app/tdata
+      - ./market.db:/app/market.db
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/market/heartbeat", "-X", "POST"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
